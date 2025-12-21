@@ -11,9 +11,6 @@ import {
   Animated
 } from "react-native";
 import AnimatedTouchable from "../../components/animation/AnimatedTouchable";
-import FadeModal from "../../components/animation/FadeModal";
-import TaskCompleteOverlay from "../../components/animation/TaskCompleteOverlay";
-import Message from "../hooks/Message";
 import { colors, spacing, radii } from "../hooks/theme";
 import { useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";

@@ -1,16 +1,24 @@
 import React from 'react';
 import { Pressable } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withTiming,
+  FadeIn,
+  FadeOut
+} from 'react-native-reanimated';
 
 export default function AnimatedTouchable({ 
   children, 
   onPress, 
   disabled = false, 
-  style 
+  style,
+  entering = FadeIn.duration(500),
+  exiting = FadeOut.duration(300)
 }) {
   const opacity = useSharedValue(1);
 
-  const animatedStyle = useAnimatedStyle(() => ({
+  const animatedPressStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
   }));
 
@@ -34,8 +42,14 @@ export default function AnimatedTouchable({
       onPressOut={handlePressOut}
       style={pressableStyle}
     >
-      <Animated.View style={[restStyle, animatedStyle]}>
-        {children}
+      <Animated.View
+        entering={entering}
+        exiting={exiting}
+        style={restStyle} 
+      >
+        <Animated.View style={animatedPressStyle}>
+          {children}
+        </Animated.View>
       </Animated.View>
     </Pressable>
   );
