@@ -57,13 +57,14 @@ function ParkingCard({ item, hideReserve, blur = false }) {
   return (
     <View style={{ marginBottom: 15, marginHorizontal: 16 }}>
       <AnimatedTouchable onPress={showDetails} style={{ borderRadius: 14 }}>
-          <LinearGradient
+        <LinearGradient
           colors={[theme.colors.secondary, theme.colors.secondary]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.card}
         >
           <View>
+            {/* Përdorimi i `OptimizedImage` për të shfaqur imazhet e parkingjeve */}
             <OptimizedImage source={item.photoUri || item.image} thumbnail={item.imageThumb || null} style={styles.image} />
             <LinearGradient
               colors={["rgba(0,0,0,0.5)", "rgba(0,0,0,0.0)"]}
@@ -73,15 +74,13 @@ function ParkingCard({ item, hideReserve, blur = false }) {
             />
             {!blur && (
               <LinearGradient
-              colors={["rgba(0,0,0,0.0)", "rgba(0,0,0,0.5)"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={styles.overlayBottom}
+                colors={["rgba(0,0,0,0.0)", "rgba(0,0,0,0.5)"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={styles.overlayBottom}
               />
             )}
-            {blur && (
-              <View style={styles.blurBottomFallback} />
-            )}
+            {blur && <View style={styles.blurBottomFallback} />}
           </View>
 
           <View style={styles.infoContainer}>
@@ -121,7 +120,6 @@ function ParkingCard({ item, hideReserve, blur = false }) {
   );
 }
 
-
 const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
@@ -154,16 +152,6 @@ const styles = StyleSheet.create({
     height: 70,
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
-  },
-  blurBottom: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 70,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    overflow: "hidden",
   },
   blurBottomFallback: {
     position: "absolute",
@@ -218,7 +206,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-
 
 function areEqual(prevProps, nextProps) {
   const p = prevProps.item || {};

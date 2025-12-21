@@ -2,19 +2,22 @@ import React, { useEffect, useState, useMemo, useRef } from "react";
 import { View, Image, StyleSheet, Animated, ActivityIndicator, Platform } from "react-native";
 import theme from "../app/hooks/theme";
 import { resolveImage } from "./images";
-
-
+import { optimizeImagePath } from "./imageOptimizer";
 
 const DEFAULT_BG = theme.colors.chipBg || "#e6f0ec";
 
 export default function OptimizedImage({ source, thumbnail, style = {}, resizeMode = "cover" }) {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isPrefetched, setIsPrefetched] = useState(false);
-  const opacity = useMemo(() => new Animated.Value(0), []);
-  const skeletonOpacity = useRef(new Animated.Value(0.6)).current;
+  const [isLoaded, setIsLoaded] = useState(false); // Kontroll për ngarkimin e imazhit
+  const [isPrefetched, setIsPrefetched] = useState(false); // Kontroll për imazhin që duhet të paraprefetchohet
+  const opacity = useMemo(() => new Animated.Value(0), []); // Ndikon në animacion gjatë shfaqjes
+  const skeletonOpacity = useRef(new Animated.Value(0.6)).current; // Opacity për skeleton placeholder
 
+  // Marr rrugën e optimizuar duke përdorur funksionin `optimizeImagePath`
+  const optimizedSource = optimizeImagePath(source);
+
+  // Gjen burimet e imazheve sipas rezolucionit (lowRes dhe highRes)
   const resolved = (() => {
-    if (!source) return null;
+    if (!source) return null; 
     if (typeof source === "string") {
       const looked = resolveImage(source);
       if (looked) return looked;
@@ -33,6 +36,7 @@ export default function OptimizedImage({ source, thumbnail, style = {}, resizeMo
     return thumbnail;
   })();
 
+  // Prefetch i imazheve
   useEffect(() => {
     let cancelled = false;
     const uriToPrefetch = resolved && resolved.uri ? resolved.uri : null;
@@ -52,6 +56,7 @@ export default function OptimizedImage({ source, thumbnail, style = {}, resizeMo
     };
   }, [resolved]);
 
+  // Kur `isLoaded` bëhet true, aktivizo animacionin për shfaqjen
   useEffect(() => {
     if (isLoaded) {
       Animated.timing(opacity, {
@@ -62,7 +67,7 @@ export default function OptimizedImage({ source, thumbnail, style = {}, resizeMo
     }
   }, [isLoaded, opacity]);
 
-  
+  // Skeleton animacion për loading placeholder
   useEffect(() => {
     let anim;
     if (!isLoaded) {
@@ -75,12 +80,15 @@ export default function OptimizedImage({ source, thumbnail, style = {}, resizeMo
       anim.start();
     }
     return () => {
-      try { anim && anim.stop(); } catch {}
+      try {
+        anim && anim.stop();
+      } catch {}
     };
   }, [isLoaded, skeletonOpacity]);
 
-  const explicitWidth = (style && (style.width || style?.width === 0)) ? style.width : null;
-  const explicitHeight = (style && (style.height || style?.height === 0)) ? style.height : null;
+  // Gjerësia dhe lartësia e përgjegjshme për stilizimin e imazheve
+  const explicitWidth = style?.width || null;
+  const explicitHeight = style?.height || null;
 
   const imageStyle = [
     explicitWidth ? { width: explicitWidth } : StyleSheet.absoluteFill,
@@ -88,31 +96,31 @@ export default function OptimizedImage({ source, thumbnail, style = {}, resizeMo
     { borderRadius: style?.borderRadius || 0 },
   ];
 
-  const lowResSource = thumbResolved ? thumbResolved : null;
-  const highResSource = resolved ? resolved : null;
+  const lowResSource = thumbResolved || null;
+  const highResSource = resolved || null;
 
   return (
     <View style={[styles.wrapper, style, !lowResSource && { backgroundColor: DEFAULT_BG }]}>
+      {/* Skeleton Placeholder */}
       {!isLoaded && (
         <Animated.View style={[StyleSheet.absoluteFill, styles.skeleton, { opacity: skeletonOpacity }]} />
       )}
+      {/* Imazhi me rezolucion të ulët */}
       {lowResSource ? (
-        <Image
-          source={lowResSource}
-          resizeMode={resizeMode}
-          style={imageStyle}
-        />
+        <Image source={lowResSource} resizeMode={resizeMode} style={imageStyle} />
       ) : null}
 
+      {/* Placeholder për aktivitetin e ngarkimit */}
       {!lowResSource && highResSource && highResSource.uri && !isLoaded && !isPrefetched && (
         <View style={[StyleSheet.absoluteFill, styles.center]}>
           <ActivityIndicator size="small" color="#2E7D6A" />
         </View>
       )}
 
+      {/* Imazhi final me rezolucion të lartë */}
       {highResSource && (isPrefetched || !highResSource.uri) ? (
         <Animated.Image
-          source={highResSource}
+          source={optimizedSource || highResSource}
           resizeMode={resizeMode}
           onLoad={() => setIsLoaded(true)}
           style={[imageStyle, { opacity }]}
